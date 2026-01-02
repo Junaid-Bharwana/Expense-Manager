@@ -1,0 +1,7 @@
+{
+  "name": "SpendWise AI",
+  "description": "A professional-grade, AI-powered expense management application featuring real-time insights, beautiful visualizations, and a responsive mobile-first design.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
