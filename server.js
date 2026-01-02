@@ -84,10 +84,14 @@ app.delete('/api/transactions/:id', async (req, res) => {
   }
 });
 
-// Serve static frontend files (standard for Hostinger Node apps)
-app.use(express.static(path.join(__dirname, 'dist')));
+// SERVE STATIC FILES
+// We serve from the current directory (where your files were uploaded)
+app.use(express.static(__dirname));
+
+// Ensure the frontend router works by serving index.html for all non-api routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  if (req.path.startsWith('/api')) return res.status(404).json({error: 'Not found'});
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;

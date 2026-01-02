@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import TransactionForm from './components/TransactionForm';
-import AIInsights from './components/AIInsights';
-import { db } from './services/db';
-import { Transaction } from './types';
+import Layout from './components/Layout.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import TransactionForm from './components/TransactionForm.tsx';
+import AIInsights from './components/AIInsights.tsx';
+import { db } from './services/db.ts';
+import { Transaction } from './types.ts';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'insights' | 'settings'>('dashboard');
