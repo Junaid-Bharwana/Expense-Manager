@@ -58,10 +58,10 @@
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "recharts": "https://esm.sh/recharts@^3.6.0"
+    "react": "https://esm.sh/react@^18.2.0",
+    "react/": "https://esm.sh/react@^18.2.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.3.0",
+    "recharts": "https://esm.sh/recharts@^2.12.7?deps=react@18.2.0,react-dom@18.2.0"
   }
 }
 </script>
@@ -70,13 +70,13 @@
     <div id="root"></div>
 
     <script type="text/babel" data-presets="react,typescript" data-type="module">
-        import React, { useState, useEffect, useMemo } from 'https://esm.sh/react@18.2.0';
+        import React, { useState, useEffect, useMemo } from 'react';
         import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
         import { 
           PieChart, Pie, Cell, ResponsiveContainer, 
           BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid 
-        } from 'https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0';
-        import { GoogleGenAI, Type } from 'https://esm.sh/@google/genai@1.3.0';
+        } from 'recharts';
+        import { GoogleGenAI, Type } from '@google/genai';
 
         // --- CONSTANTS ---
         const Category = {
@@ -221,16 +221,16 @@
                 </aside>
 
                 {/* Mobile Top Bar */}
-                <header className="md:hidden flex items-center justify-between p-6 sticky top-0 bg-white/80 backdrop-blur-xl z-50 border-b border-slate-100">
+                <header className="md:hidden flex items-center justify-between p-4 md:p-6 sticky top-0 bg-white/80 backdrop-blur-xl z-50 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-sm">S</div>
-                         <h1 className="font-bold tracking-tight">SpendWise</h1>
+                         <h1 className="font-bold tracking-tight text-slate-900">SpendWise</h1>
                     </div>
-                    <button onClick={onAdd} className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 font-bold">+</button>
+                    <button onClick={onAdd} className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 font-bold active:scale-95 transition-transform">+</button>
                 </header>
 
                 {/* Main Viewport */}
-                <main className="flex-1 p-6 md:p-16 max-w-6xl mx-auto w-full pb-32 md:pb-16">
+                <main className="flex-1 p-4 md:p-16 max-w-6xl mx-auto w-full pb-32 md:pb-16">
                     <header className="hidden md:flex justify-between items-end mb-16">
                         <div>
                             <h2 className="text-4xl font-black text-slate-900 tracking-tighter capitalize">{activeTab}</h2>
@@ -247,15 +247,15 @@
                 </main>
 
                 {/* Mobile Bottom Dock */}
-                <nav className="md:hidden fixed bottom-6 left-6 right-6 glass-dock rounded-[2.5rem] border border-white/20 shadow-2xl z-50 px-8 py-3 flex justify-between items-center">
+                <nav className="md:hidden fixed bottom-6 left-4 right-4 glass-dock rounded-3xl md:rounded-[2.5rem] border border-white/20 shadow-2xl z-50 px-4 md:px-8 py-2 md:py-3 flex justify-between items-center">
                     {['dashboard', 'transactions', 'insights', 'settings'].map(tab => (
                         <button 
                             key={tab} 
                             onClick={() => setActiveTab(tab)} 
                             className={`flex flex-col items-center p-2 rounded-2xl transition-all ${activeTab === tab ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400'}`}
                         >
-                            <Icon name={tab} className="w-6 h-6" />
-                            <span className="text-[10px] font-black uppercase tracking-tighter mt-1">{tab.slice(0,4)}</span>
+                            <Icon name={tab} className="w-5 h-5 md:w-6 md:h-6" />
+                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter mt-1">{tab.slice(0,4)}</span>
                         </button>
                     ))}
                 </nav>
@@ -278,63 +278,63 @@
             }, [transactions]);
 
             return (
-                <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group">
+                <div className="space-y-6 md:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                        <div className="bg-slate-900 p-6 md:p-10 rounded-2xl md:rounded-[3rem] text-white shadow-2xl relative overflow-hidden group">
                             <div className="relative z-10">
-                                <p className="text-indigo-300 text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-80">NET LIQUIDITY</p>
-                                <p className="text-5xl font-black tracking-tighter">${totals.balance.toLocaleString()}</p>
+                                <p className="text-indigo-300 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 md:mb-2 opacity-80">NET LIQUIDITY</p>
+                                <p className="text-2xl md:text-5xl font-black tracking-tighter">${totals.balance.toLocaleString()}</p>
                             </div>
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-125 transition-transform duration-700" />
+                            <div className="absolute top-0 right-0 w-32 md:w-48 h-32 md:h-48 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-125 transition-transform duration-700" />
                         </div>
-                        <div className="premium-card p-10 rounded-[3rem]">
-                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">INFLOW</p>
-                            <p className="text-4xl font-bold text-emerald-600 tracking-tight">${totals.income.toLocaleString()}</p>
+                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[3rem]">
+                            <p className="text-slate-400 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 md:mb-2">INFLOW</p>
+                            <p className="text-xl md:text-4xl font-bold text-emerald-600 tracking-tight">${totals.income.toLocaleString()}</p>
                         </div>
-                        <div className="premium-card p-10 rounded-[3rem]">
-                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">OUTFLOW</p>
-                            <p className="text-4xl font-bold text-rose-500 tracking-tight">${totals.expense.toLocaleString()}</p>
+                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[3rem]">
+                            <p className="text-slate-400 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 md:mb-2">OUTFLOW</p>
+                            <p className="text-xl md:text-4xl font-bold text-rose-500 tracking-tight">${totals.expense.toLocaleString()}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                        <div className="premium-card p-10 rounded-[3rem] h-[450px] flex flex-col">
-                            <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">Spending Clusters</h3>
-                            <div className="flex-1">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[3rem] h-[350px] md:h-[450px] flex flex-col">
+                            <h3 className="text-lg md:text-xl font-black text-slate-800 mb-4 md:mb-8 tracking-tight">Spending Clusters</h3>
+                            <div className="flex-1 min-h-0">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
-                                        <Pie data={categoryData} innerRadius={100} outerRadius={140} paddingAngle={10} dataKey="value" stroke="none">
+                                        <Pie data={categoryData} innerRadius="60%" outerRadius="85%" paddingAngle={5} dataKey="value" stroke="none">
                                             {categoryData.map((e, i) => <Cell key={i} fill={CATEGORY_COLORS[e.name]} />)}
                                         </Pie>
                                         <Tooltip 
-                                            contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '16px' }} 
-                                            itemStyle={{ fontWeight: 800, fontSize: '14px' }}
+                                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '12px' }} 
+                                            itemStyle={{ fontWeight: 800, fontSize: '12px' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
 
-                        <div className="premium-card p-10 rounded-[3rem] flex flex-col">
-                            <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">Recent Activity</h3>
-                            <div className="space-y-4 overflow-y-auto max-h-[300px] hide-scrollbar pr-2">
+                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[3rem] flex flex-col">
+                            <h3 className="text-lg md:text-xl font-black text-slate-800 mb-4 md:mb-8 tracking-tight">Recent Activity</h3>
+                            <div className="space-y-3 md:space-y-4 overflow-y-auto max-h-[250px] md:max-h-[300px] hide-scrollbar pr-1">
                                 {transactions.slice(0, 10).map(t => (
-                                    <div key={t.id} className="flex justify-between items-center p-5 bg-slate-50/50 hover:bg-white rounded-2xl transition-all border border-transparent hover:border-slate-100 hover:shadow-sm">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white shadow-sm border border-slate-100 text-xl">
+                                    <div key={t.id} className="flex justify-between items-center p-3 md:p-5 bg-slate-50/50 hover:bg-white rounded-xl md:rounded-2xl transition-all border border-transparent hover:border-slate-100 hover:shadow-sm">
+                                        <div className="flex items-center gap-3 md:gap-4">
+                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center bg-white shadow-sm border border-slate-100 text-lg">
                                                 {t.type === 'income' ? '💹' : '📉'}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-slate-900 leading-tight mb-0.5">{t.title}</p>
-                                                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest opacity-60">{t.category}</p>
+                                                <p className="font-bold text-slate-900 text-sm md:text-base leading-tight mb-0.5 truncate max-w-[120px] md:max-w-none">{t.title}</p>
+                                                <p className="text-[9px] md:text-[10px] font-black text-indigo-500 uppercase tracking-widest opacity-60">{t.category}</p>
                                             </div>
                                         </div>
-                                        <p className={`text-lg font-black tracking-tight ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                        <p className={`text-base md:text-lg font-black tracking-tight ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
                                             {t.type === 'income' ? '+' : '-'}${Number(t.amount).toFixed(2)}
                                         </p>
                                     </div>
                                 ))}
-                                {transactions.length === 0 && <p className="text-center py-20 text-slate-400 italic font-medium">No records found. Start by adding one.</p>}
+                                {transactions.length === 0 && <p className="text-center py-10 md:py-20 text-slate-400 italic font-medium text-sm">No records found.</p>}
                             </div>
                         </div>
                     </div>
@@ -358,21 +358,21 @@
             };
 
             return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
-                    <div className="bg-white w-full max-w-xl rounded-[3rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
-                        <div className="flex justify-between items-start mb-10">
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{initialData ? 'Update' : 'Capture'} Entry</h2>
-                            <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-md">
+                    <div className="bg-white w-full max-w-xl rounded-3xl md:rounded-[3rem] p-6 md:p-12 shadow-2xl animate-in zoom-in-95 duration-500 max-h-[90vh] overflow-y-auto hide-scrollbar">
+                        <div className="flex justify-between items-start mb-6 md:mb-10">
+                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">{initialData ? 'Update' : 'Capture'} Entry</h2>
+                            <button onClick={onClose} className="p-2 md:p-3 hover:bg-slate-100 rounded-xl md:rounded-2xl transition-all">
+                                <svg className="w-5 h-5 md:w-6 md:h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
-                        <div className="space-y-8">
-                            <div className="flex bg-slate-100 p-2 rounded-3xl">
+                        <div className="space-y-6 md:space-y-8">
+                            <div className="flex bg-slate-100 p-1.5 rounded-2xl md:rounded-3xl">
                                 {['expense', 'income'].map(type => (
                                     <button 
                                         key={type} 
                                         onClick={() => setData({...data, type})} 
-                                        className={`flex-1 py-4 rounded-[1.25rem] text-sm font-black uppercase tracking-widest transition-all ${data.type === type ? 'bg-white shadow-md text-indigo-600' : 'text-slate-400'}`}
+                                        className={`flex-1 py-3 md:py-4 rounded-xl md:rounded-[1.25rem] text-[10px] md:text-sm font-black uppercase tracking-widest transition-all ${data.type === type ? 'bg-white shadow-md text-indigo-600' : 'text-slate-400'}`}
                                     >
                                         {type}
                                     </button>
@@ -380,19 +380,22 @@
                             </div>
                             <div className="relative">
                                 <input 
-                                    placeholder="Transaction Narrative" 
+                                    placeholder="Title (e.g. Starbucks Coffee)" 
                                     onBlur={autoCategorize}
                                     value={data.title} 
                                     onChange={e => setData({...data, title: e.target.value})} 
-                                    className="w-full px-8 py-5 bg-slate-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold text-lg placeholder:text-slate-300" 
+                                    className="w-full px-6 md:px-8 py-4 md:py-5 bg-slate-50 border-none rounded-xl md:rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold text-base md:text-lg placeholder:text-slate-300" 
                                 />
-                                {isAIThinking && <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-500 animate-pulse tracking-widest">AI SCANNING...</div>}
+                                {isAIThinking && <div className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-[8px] md:text-[10px] font-black text-indigo-500 animate-pulse tracking-widest">AI SCANNING...</div>}
                             </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <input type="number" placeholder="0.00" value={data.amount} onChange={e => setData({...data, amount: e.target.value})} className="w-full px-8 py-5 bg-slate-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-black text-2xl" />
-                                <input type="date" value={data.date} onChange={e => setData({...data, date: e.target.value})} className="w-full px-8 py-5 bg-slate-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                <div className="relative">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-slate-300">$</span>
+                                    <input type="number" placeholder="0.00" value={data.amount} onChange={e => setData({...data, amount: e.target.value})} className="w-full pl-10 pr-6 py-4 md:py-5 bg-slate-50 border-none rounded-xl md:rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-black text-xl md:text-2xl" />
+                                </div>
+                                <input type="date" value={data.date} onChange={e => setData({...data, date: e.target.value})} className="w-full px-6 py-4 md:py-5 bg-slate-50 border-none rounded-xl md:rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold" />
                             </div>
-                            <select value={data.category} onChange={e => setData({...data, category: e.target.value})} className="w-full px-8 py-5 bg-slate-50 border-none rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold appearance-none">
+                            <select value={data.category} onChange={e => setData({...data, category: e.target.value})} className="w-full px-6 md:px-8 py-4 md:py-5 bg-slate-50 border-none rounded-xl md:rounded-[1.5rem] focus:ring-4 focus:ring-indigo-100 font-bold appearance-none">
                                 {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                             <button 
@@ -400,7 +403,7 @@
                                     if(!data.title || !data.amount) return;
                                     onSave({...data, id: data.id || Math.random().toString(36).substr(2, 9)});
                                 }} 
-                                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xl shadow-2xl hover:bg-slate-800 active:scale-95 transition-all mt-4 uppercase tracking-[0.1em]"
+                                className="w-full py-4 md:py-6 bg-slate-900 text-white rounded-2xl md:rounded-[2rem] font-black text-lg md:text-xl shadow-2xl hover:bg-slate-800 active:scale-95 transition-all mt-2 md:mt-4 uppercase tracking-[0.1em]"
                             >
                                 Secure Entry
                             </button>
@@ -450,85 +453,85 @@
             return (
                 <Layout activeTab={activeTab} setActiveTab={setActiveTab} onAdd={() => setIsFormOpen(true)}>
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-40 gap-6">
-                            <div className="w-16 h-16 border-8 border-indigo-600 border-t-transparent rounded-full animate-spin shadow-xl"></div>
-                            <p className="text-slate-400 font-black uppercase tracking-[0.3em] animate-pulse">Establishing MySQL Node</p>
+                        <div className="flex flex-col items-center justify-center py-32 md:py-40 gap-6">
+                            <div className="w-12 h-12 md:w-16 md:h-16 border-4 md:border-8 border-indigo-600 border-t-transparent rounded-full animate-spin shadow-xl"></div>
+                            <p className="text-slate-400 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] animate-pulse text-xs md:text-sm">Connecting Node</p>
                         </div>
                     ) : (
                         <div className="animate-in fade-in duration-700">
                             {activeTab === 'dashboard' && <Dashboard transactions={transactions} />}
                             {activeTab === 'transactions' && (
-                                <div className="premium-card rounded-[3rem] overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse">
+                                <div className="premium-card rounded-2xl md:rounded-[3rem] overflow-hidden">
+                                    <div className="overflow-x-auto scrollbar-hide">
+                                        <table className="w-full text-left border-collapse min-w-[500px] md:min-w-0">
                                             <thead>
                                                 <tr className="bg-slate-50/50">
-                                                    <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date Index</th>
-                                                    <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Narration</th>
-                                                    <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Magnitude</th>
-                                                    <th className="px-10 py-8"></th>
+                                                    <th className="px-5 md:px-10 py-5 md:py-8 text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                                                    <th className="px-5 md:px-10 py-5 md:py-8 text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Narration</th>
+                                                    <th className="px-5 md:px-10 py-5 md:py-8 text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Value</th>
+                                                    <th className="px-5 md:px-10 py-5 md:py-8"></th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
                                                 {transactions.map(t => (
                                                     <tr key={t.id} className="hover:bg-slate-50/30 transition-colors group">
-                                                        <td className="px-10 py-8 text-sm font-semibold text-slate-400">{new Date(t.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}</td>
-                                                        <td className="px-10 py-8">
-                                                            <p className="text-base font-bold text-slate-900 leading-tight mb-1">{t.title}</p>
-                                                            <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{t.category}</span>
+                                                        <td className="px-5 md:px-10 py-5 md:py-8 text-xs md:text-sm font-semibold text-slate-400">{new Date(t.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}</td>
+                                                        <td className="px-5 md:px-10 py-5 md:py-8">
+                                                            <p className="text-sm md:text-base font-bold text-slate-900 leading-tight mb-1 truncate max-w-[120px] md:max-w-none">{t.title}</p>
+                                                            <span className="text-[8px] md:text-[10px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{t.category}</span>
                                                         </td>
-                                                        <td className={`px-10 py-8 text-xl font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                                        <td className={`px-5 md:px-10 py-5 md:py-8 text-base md:text-xl font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
                                                             {t.type === 'income' ? '+' : '-'}${Number(t.amount).toFixed(2)}
                                                         </td>
-                                                        <td className="px-10 py-8 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <div className="flex justify-end gap-3">
-                                                                <button onClick={() => {setEditing(t); setIsFormOpen(true);}} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"><Icon name="settings" className="w-5 h-5" /></button>
-                                                                <button onClick={() => del(t.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                                                        <td className="px-5 md:px-10 py-5 md:py-8 text-right md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <div className="flex justify-end gap-1 md:gap-3">
+                                                                <button onClick={() => {setEditing(t); setIsFormOpen(true);}} className="p-1.5 md:p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all"><Icon name="settings" className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                                                <button onClick={() => del(t.id)} className="p-1.5 md:p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                {transactions.length === 0 && <tr><td colSpan="4" className="text-center py-32 text-slate-400 font-bold uppercase tracking-widest">Database Null</td></tr>}
+                                                {transactions.length === 0 && <tr><td colSpan="4" className="text-center py-20 md:py-32 text-slate-400 font-bold uppercase tracking-widest text-xs">Ledger Empty</td></tr>}
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             )}
                             {activeTab === 'insights' && (
-                                <div className="space-y-10">
-                                    <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 p-16 rounded-[4rem] text-white shadow-2xl relative overflow-hidden text-center md:text-left flex flex-col md:flex-row items-center gap-12">
+                                <div className="space-y-6 md:space-y-10">
+                                    <div className="bg-gradient-to-br from-indigo-700 to-indigo-900 p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-white shadow-2xl relative overflow-hidden text-center md:text-left flex flex-col md:flex-row items-center gap-8 md:gap-12">
                                         <div className="relative z-10 flex-1">
-                                            <div className="inline-block p-4 bg-white/10 rounded-3xl backdrop-blur-md mb-8">✨ Gemini Intelligence</div>
-                                            <h3 className="text-5xl font-black mb-6 tracking-tighter leading-tight">Quantify your potential.</h3>
-                                            <p className="text-indigo-100 text-lg max-w-xl opacity-90 leading-relaxed">Our AI analyzes thousands of data points to generate actionable optimization strategies for your capital.</p>
+                                            <div className="inline-block p-2 md:p-4 bg-white/10 rounded-2xl md:rounded-3xl backdrop-blur-md mb-4 md:mb-8 text-xs md:text-base font-medium">✨ Gemini Intelligence</div>
+                                            <h3 className="text-2xl md:text-5xl font-black mb-4 md:mb-6 tracking-tighter leading-tight">Scale your wealth.</h3>
+                                            <p className="text-indigo-100 text-sm md:text-lg max-w-xl opacity-90 leading-relaxed">Our AI analyzes your capital flow to discover hyper-personalized optimization strategies.</p>
                                             <button 
                                                 onClick={runAiAudit}
                                                 disabled={isAiLoading}
-                                                className="mt-10 px-12 py-5 bg-white text-indigo-900 rounded-[2rem] font-black shadow-2xl hover:-translate-y-1 transition-all disabled:opacity-50"
+                                                className="mt-6 md:mt-10 px-8 md:px-12 py-3 md:py-5 bg-white text-indigo-900 rounded-2xl md:rounded-[2rem] font-black shadow-2xl hover:-translate-y-1 transition-all disabled:opacity-50 text-sm md:text-base"
                                             >
-                                                {isAiLoading ? 'SYNCING AI ENGINE...' : 'INITIATE AUDIT'}
+                                                {isAiLoading ? 'SYNCING ENGINE...' : 'INITIATE AUDIT'}
                                             </button>
                                         </div>
-                                        <div className="w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl absolute bottom-0 right-0 -mb-20 -mr-20" />
+                                        <div className="hidden md:block w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl absolute bottom-0 right-0 -mb-20 -mr-20" />
                                     </div>
                                     
                                     {aiInsight && (
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in slide-in-from-top-10 duration-700">
-                                            <div className="premium-card p-12 rounded-[3.5rem]">
-                                                <h4 className="text-indigo-600 font-black uppercase tracking-widest text-xs mb-6">Strategic Summary</h4>
-                                                <p className="text-slate-600 text-lg leading-relaxed font-medium">{aiInsight.summary}</p>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 animate-in slide-in-from-top-10 duration-700">
+                                            <div className="premium-card p-6 md:p-12 rounded-2xl md:rounded-[3.5rem]">
+                                                <h4 className="text-indigo-600 font-black uppercase tracking-widest text-[9px] md:text-xs mb-4 md:mb-6">Strategic Summary</h4>
+                                                <p className="text-slate-600 text-base md:text-lg leading-relaxed font-medium">{aiInsight.summary}</p>
                                             </div>
-                                            <div className="premium-card p-12 rounded-[3.5rem]">
-                                                <h4 className="text-emerald-600 font-black uppercase tracking-widest text-xs mb-6">Efficiency Gain</h4>
-                                                <p className="text-slate-600 text-lg leading-relaxed font-medium">{aiInsight.savingsPotential}</p>
+                                            <div className="premium-card p-6 md:p-12 rounded-2xl md:rounded-[3.5rem]">
+                                                <h4 className="text-emerald-600 font-black uppercase tracking-widest text-[9px] md:text-xs mb-4 md:mb-6">Efficiency Gain</h4>
+                                                <p className="text-slate-600 text-base md:text-lg leading-relaxed font-medium">{aiInsight.savingsPotential}</p>
                                             </div>
-                                            <div className="premium-card p-12 rounded-[3.5rem] lg:col-span-2">
-                                                <h4 className="text-indigo-600 font-black uppercase tracking-widest text-xs mb-8">Action Directives</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="premium-card p-6 md:p-12 rounded-2xl md:rounded-[3.5rem] lg:col-span-2">
+                                                <h4 className="text-indigo-600 font-black uppercase tracking-widest text-[9px] md:text-xs mb-6 md:mb-8">Action Directives</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                                                     {aiInsight.recommendations.map((rec, i) => (
-                                                        <div key={i} className="flex gap-6 items-start p-8 bg-slate-50 rounded-[2.5rem] hover:bg-white border border-transparent hover:border-slate-100 transition-all">
-                                                            <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black flex-shrink-0">{i+1}</div>
-                                                            <p className="text-slate-700 font-bold leading-relaxed">{rec}</p>
+                                                        <div key={i} className="flex gap-4 md:gap-6 items-start p-5 md:p-8 bg-slate-50 rounded-2xl md:rounded-[2.5rem] hover:bg-white border border-transparent hover:border-slate-100 transition-all">
+                                                            <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center font-black flex-shrink-0 text-sm md:text-base">{i+1}</div>
+                                                            <p className="text-slate-700 font-bold leading-relaxed text-sm md:text-base">{rec}</p>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -538,24 +541,24 @@
                                 </div>
                             )}
                             {activeTab === 'settings' && (
-                                <div className="max-w-2xl mx-auto space-y-8">
-                                    <div className="premium-card p-16 rounded-[4rem] text-center">
-                                        <div className="w-32 h-32 bg-slate-900 text-white rounded-[3rem] flex items-center justify-center mx-auto mb-10 text-5xl font-black shadow-2xl">JS</div>
-                                        <h3 className="text-3xl font-black text-slate-900 mb-2">John Smith</h3>
-                                        <p className="text-slate-400 font-black uppercase tracking-widest text-xs mb-10">Pro License Active</p>
-                                        <div className="space-y-4">
-                                            <button onClick={() => window.location.reload()} className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-sm">Refresh Cloud Sync</button>
-                                            <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="w-full py-5 bg-slate-100 text-slate-500 rounded-[1.5rem] font-bold hover:bg-slate-200 transition-all uppercase tracking-widest text-xs">Purge Cache</button>
+                                <div className="max-w-2xl mx-auto space-y-6 md:space-y-8">
+                                    <div className="premium-card p-8 md:p-16 rounded-3xl md:rounded-[4rem] text-center">
+                                        <div className="w-20 h-20 md:w-32 md:h-32 bg-slate-900 text-white rounded-2xl md:rounded-[3rem] flex items-center justify-center mx-auto mb-6 md:mb-10 text-3xl md:text-5xl font-black shadow-2xl">JS</div>
+                                        <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-1 md:mb-2">John Smith</h3>
+                                        <p className="text-slate-400 font-black uppercase tracking-widest text-[9px] md:text-xs mb-8 md:mb-10">Pro License Active</p>
+                                        <div className="space-y-3 md:space-y-4">
+                                            <button onClick={() => window.location.reload()} className="w-full py-4 md:py-5 bg-indigo-600 text-white rounded-xl md:rounded-[1.5rem] font-black shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-xs md:text-sm">Refresh Cloud Sync</button>
+                                            <button onClick={() => { localStorage.clear(); window.location.reload(); }} className="w-full py-4 md:py-5 bg-slate-100 text-slate-500 rounded-xl md:rounded-[1.5rem] font-bold hover:bg-slate-200 transition-all uppercase tracking-widest text-[9px] md:text-xs">Purge Cache</button>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="premium-card p-10 rounded-[2.5rem] text-center">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">DB Latency</p>
-                                            <p className="text-2xl font-black text-emerald-500">12ms</p>
+                                    <div className="grid grid-cols-2 gap-4 md:gap-6">
+                                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] text-center">
+                                            <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2">DB Latency</p>
+                                            <p className="text-lg md:text-2xl font-black text-emerald-500">12ms</p>
                                         </div>
-                                        <div className="premium-card p-10 rounded-[2.5rem] text-center">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Node Type</p>
-                                            <p className="text-2xl font-black text-slate-900">MySQL</p>
+                                        <div className="premium-card p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] text-center">
+                                            <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2">Node Type</p>
+                                            <p className="text-lg md:text-2xl font-black text-slate-900">MySQL</p>
                                         </div>
                                     </div>
                                 </div>
