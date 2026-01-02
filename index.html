@@ -4,30 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpendWise AI - Personal Finance Manager</title>
+    <title>SpendWise AI - Personal Finance</title>
+    
+    <!-- CSS Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Babel standalone for browser-side transpilation -->
+    <!-- Babel for on-the-fly JSX/TS transpilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        #root:empty { display: flex; align-items: center; justify-content: center; height: 100vh; font-weight: 500; color: #6366f1; }
-        #root:empty::after { content: "Loading SpendWise AI..."; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        #root:empty { display: flex; align-items: center; justify-content: center; height: 100vh; font-weight: 500; color: #6366f1; background: #f8fafc; }
+        #root:empty::after { content: "Initializing Secure Connection..."; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
     </style>
-
-    <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "@google/genai": "https://esm.sh/@google/genai@1.3.0",
-    "recharts": "https://esm.sh/recharts@2.12.7",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
   }
 }
 </script>
@@ -35,21 +41,342 @@
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
-    <!-- Entry point inlined to guarantee execution and handle dependencies -->
     <script type="text/babel" data-presets="react,typescript" data-type="module">
-        import React from 'react';
-        import ReactDOM from 'react-dom/client';
-        import App from './App.tsx';
+        // --- ESM IMPORTS ---
+        import React, { useState, useEffect, useMemo } from 'https://esm.sh/react@18.2.0';
+        import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+        import { 
+          PieChart, Pie, Cell, ResponsiveContainer, 
+          BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid 
+        } from 'https://esm.sh/recharts@2.12.7';
+        import { GoogleGenAI, Type } from 'https://esm.sh/@google/genai@1.3.0';
 
-        const rootElement = document.getElementById('root');
-        if (rootElement) {
-            const root = ReactDOM.createRoot(rootElement);
-            root.render(
-                <React.StrictMode>
-                    <App />
-                </React.StrictMode>
+        // --- CONSTANTS ---
+        const Category = {
+            FOOD: 'Food & Dining',
+            TRANSPORT: 'Transport',
+            SHOPPING: 'Shopping',
+            ENTERTAINMENT: 'Entertainment',
+            HEALTH: 'Health',
+            BILLS: 'Bills & Utilities',
+            INCOME: 'Income',
+            OTHER: 'Other'
+        };
+
+        const CATEGORY_COLORS = {
+            [Category.FOOD]: '#F87171',
+            [Category.TRANSPORT]: '#60A5FA',
+            [Category.SHOPPING]: '#FBBF24',
+            [Category.ENTERTAINMENT]: '#A78BFA',
+            [Category.HEALTH]: '#34D399',
+            [Category.BILLS]: '#FB923C',
+            [Category.INCOME]: '#10B981',
+            [Category.OTHER]: '#94A3B8',
+        };
+
+        // --- SERVICES ---
+        const API_BASE = '/api';
+        const db = {
+            getTransactions: async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/transactions`);
+                    if (!res.ok) throw new Error('API Error');
+                    return await res.json();
+                } catch (e) {
+                    console.warn("API Error, using local storage backup");
+                    return JSON.parse(localStorage.getItem('sw_backup') || '[]');
+                }
+            },
+            saveTransaction: async (t) => {
+                try {
+                    await fetch(`${API_BASE}/transactions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(t)
+                    });
+                } catch (e) {
+                    console.error("Save failed to MySQL");
+                }
+                // Always sync local backup
+                const local = JSON.parse(localStorage.getItem('sw_backup') || '[]');
+                const idx = local.findIndex(x => x.id === t.id);
+                if (idx > -1) local[idx] = t; else local.unshift(t);
+                localStorage.setItem('sw_backup', JSON.stringify(local));
+            },
+            deleteTransaction: async (id) => {
+                try {
+                    await fetch(`${API_BASE}/transactions/${id}`, { method: 'DELETE' });
+                } catch (e) {}
+                const local = JSON.parse(localStorage.getItem('sw_backup') || '[]').filter(x => x.id !== id);
+                localStorage.setItem('sw_backup', JSON.stringify(local));
+            }
+        };
+
+        const aiClient = new GoogleGenAI({ apiKey: "" }); // Key injected via env or user settings
+
+        // --- UI COMPONENTS ---
+        const Layout = ({ children, activeTab, setActiveTab, onAdd }) => (
+            <div className="flex flex-col min-h-screen pb-20 md:pb-0 md:pl-64">
+                <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-30">
+                    <div className="p-8">
+                        <h1 className="text-2xl font-bold text-indigo-600 flex items-center gap-2">💎 SpendWise</h1>
+                    </div>
+                    <nav className="flex-1 px-4 space-y-2">
+                        {['dashboard', 'transactions', 'insights', 'settings'].map(tab => (
+                            <button 
+                                key={tab} 
+                                onClick={() => setActiveTab(tab)} 
+                                className={`w-full text-left px-4 py-3 rounded-xl capitalize transition-all ${
+                                    activeTab === tab ? 'bg-indigo-600 text-white font-semibold shadow-lg shadow-indigo-100' : 'text-slate-500 hover:bg-slate-50'
+                                }`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </nav>
+                </aside>
+
+                <main className="flex-1 p-4 md:p-10 max-w-5xl mx-auto w-full">
+                    <header className="flex justify-between items-end mb-10">
+                        <div>
+                            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight capitalize">{activeTab}</h2>
+                            <p className="text-slate-500 mt-1">Hello, John. Your wealth overview.</p>
+                        </div>
+                        <button 
+                            onClick={onAdd}
+                            className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+                        >
+                            + Add Entry
+                        </button>
+                    </header>
+                    {children}
+                </main>
+
+                <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-200 flex justify-around py-4 px-2 z-40">
+                    {['dashboard', 'transactions', 'insights', 'settings'].map(tab => (
+                        <button 
+                            key={tab} 
+                            onClick={() => setActiveTab(tab)} 
+                            className={`flex flex-col items-center gap-1 transition-all ${activeTab === tab ? 'text-indigo-600' : 'text-slate-400'}`}
+                        >
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{tab}</span>
+                        </button>
+                    ))}
+                </nav>
+            </div>
+        );
+
+        const Dashboard = ({ transactions }) => {
+            const totals = useMemo(() => {
+                const income = transactions.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0);
+                const expense = transactions.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+                return { income, expense, balance: income - expense };
+            }, [transactions]);
+
+            const categoryData = useMemo(() => {
+                const grouped = transactions.filter(t => t.type === 'expense').reduce((acc, t) => {
+                    acc[t.category] = (acc[t.category] || 0) + Number(t.amount);
+                    return acc;
+                }, {});
+                return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+            }, [transactions]);
+
+            return (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+                            <p className="text-indigo-300 text-sm font-semibold uppercase tracking-widest mb-1">Total Net Worth</p>
+                            <p className="text-4xl font-bold tracking-tight">${totals.balance.toLocaleString()}</p>
+                            <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl"></div>
+                        </div>
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                            <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-1">Total Income</p>
+                            <p className="text-3xl font-bold text-emerald-600">${totals.income.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                            <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-1">Total Expenses</p>
+                            <p className="text-3xl font-bold text-rose-500">${totals.expense.toLocaleString()}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm h-96">
+                            <h3 className="text-xl font-bold mb-6 text-slate-800">Spending Patterns</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={categoryData} innerRadius={80} outerRadius={110} paddingAngle={8} dataKey="value">
+                                        {categoryData.map((e, i) => <Cell key={i} fill={CATEGORY_COLORS[e.name]} stroke="none" />)}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                            <h3 className="text-xl font-bold mb-6 text-slate-800">Recent Transactions</h3>
+                            <div className="space-y-4 max-h-[300px] overflow-y-auto hide-scrollbar">
+                                {transactions.slice(0, 10).map(t => (
+                                    <div key={t.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-sm text-lg">
+                                                {t.type === 'income' ? '💰' : '💸'}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 leading-none mb-1">{t.title}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.category}</p>
+                                            </div>
+                                        </div>
+                                        <p className={`font-black ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                            {t.type === 'income' ? '+' : '-'}${Number(t.amount).toFixed(2)}
+                                        </p>
+                                    </div>
+                                ))}
+                                {transactions.length === 0 && <p className="text-center py-10 text-slate-400">Waiting for data...</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             );
-        }
+        };
+
+        const TransactionForm = ({ onSave, onClose, initialData }) => {
+            const [data, setData] = useState(initialData || { 
+                title: '', amount: '', date: new Date().toISOString().split('T')[0], category: 'Other', type: 'expense' 
+            });
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md">
+                    <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in duration-300">
+                        <div className="flex justify-between items-start mb-8">
+                            <h2 className="text-3xl font-black text-slate-900">{initialData ? 'Update' : 'New'} Record</h2>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+                                {['expense', 'income'].map(type => (
+                                    <button key={type} onClick={() => setData({...data, type})} className={`flex-1 py-3 rounded-xl text-sm font-bold capitalize transition-all ${data.type === type ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}>{type}</button>
+                                ))}
+                            </div>
+                            <input placeholder="Transaction Title" value={data.title} onChange={e => setData({...data, title: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <input type="number" placeholder="Amount" value={data.amount} onChange={e => setData({...data, amount: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-bold text-xl" />
+                                <input type="date" value={data.date} onChange={e => setData({...data, date: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium" />
+                            </div>
+                            <select value={data.category} onChange={e => setData({...data, category: e.target.value})} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-medium appearance-none">
+                                {Object.values(Category).map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <button onClick={() => onSave({...data, id: data.id || Math.random().toString(36).substr(2, 9)})} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-lg shadow-2xl hover:bg-indigo-700 transition-all mt-6">Confirm Transaction</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [transactions, setTransactions] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [isFormOpen, setIsFormOpen] = useState(false);
+            const [editing, setEditing] = useState(null);
+
+            const load = async () => {
+                setLoading(true);
+                const data = await db.getTransactions();
+                setTransactions(data);
+                setLoading(false);
+            };
+
+            useEffect(() => { load(); }, []);
+
+            const save = async (t) => {
+                await db.saveTransaction(t);
+                await load();
+                setIsFormOpen(false);
+                setEditing(null);
+            };
+
+            const del = async (id) => {
+                if(confirm('Delete this record?')) { await db.deleteTransaction(id); await load(); }
+            };
+
+            return (
+                <Layout activeTab={activeTab} setActiveTab={setActiveTab} onAdd={() => setIsFormOpen(true)}>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-slate-400 font-medium">Synchronizing with Cloud Database...</p>
+                        </div>
+                    ) : (
+                        <div className="pb-10">
+                            {activeTab === 'dashboard' && <Dashboard transactions={transactions} />}
+                            {activeTab === 'transactions' && (
+                                <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-slate-50 border-b border-slate-100">
+                                            <tr>
+                                                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Date</th>
+                                                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Label</th>
+                                                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Value</th>
+                                                <th className="px-8 py-6"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {transactions.map(t => (
+                                                <tr key={t.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                    <td className="px-8 py-6 text-sm text-slate-500">{new Date(t.date).toLocaleDateString()}</td>
+                                                    <td className="px-8 py-6">
+                                                        <p className="text-base font-bold text-slate-900 leading-tight">{t.title}</p>
+                                                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{t.category}</p>
+                                                    </td>
+                                                    <td className={`px-8 py-6 text-lg font-black text-right ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                                        {t.type === 'income' ? '+' : '-'}${Number(t.amount).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-8 py-6 text-right space-x-3">
+                                                        <button onClick={() => {setEditing(t); setIsFormOpen(true);}} className="text-slate-300 hover:text-indigo-600 font-bold transition-colors">Edit</button>
+                                                        <button onClick={() => del(t.id)} className="text-slate-300 hover:text-rose-500 font-bold transition-colors">Delete</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {transactions.length === 0 && (
+                                                <tr><td colSpan="4" className="text-center py-20 text-slate-400 font-medium italic">No ledger entries found.</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                            {activeTab === 'insights' && (
+                                <div className="bg-indigo-600 p-16 rounded-[3rem] text-white text-center shadow-2xl relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-4xl mb-6 mx-auto">✨</div>
+                                        <h3 className="text-3xl font-black mb-4">Gemini Intelligence</h3>
+                                        <p className="text-indigo-100 text-lg max-w-lg mx-auto leading-relaxed">Personalized spending audits and savings strategies are currently being generated based on your history.</p>
+                                        <button className="mt-8 px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black shadow-xl hover:-translate-y-1 transition-all">Start AI Audit</button>
+                                    </div>
+                                    <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                                </div>
+                            )}
+                            {activeTab === 'settings' && (
+                                <div className="bg-white p-12 rounded-[3rem] border border-slate-200 text-center max-w-md mx-auto shadow-sm">
+                                    <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-4xl font-black">JS</div>
+                                    <h3 className="text-2xl font-black text-slate-900">John Smith</h3>
+                                    <p className="text-slate-400 font-semibold mb-8 italic uppercase tracking-widest text-[10px]">Cloud Infrastructure: MySQL Node.js</p>
+                                    <div className="space-y-3">
+                                        <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold">Refresh Server Sync</button>
+                                        <button className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold">Clear Local Cache</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {isFormOpen && <TransactionForm initialData={editing} onSave={save} onClose={() => {setIsFormOpen(false); setEditing(null);}} />}
+                </Layout>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
